@@ -8,7 +8,7 @@ Passport Authentication using Local Strategy\
 Basic Email Templates with MJML
 
 ## Demo
-https://glweb-mevnauth.herokuapp.com/dashboard
+https://glweb-mevnauth.herokuapp.com
 
 ## Features
 Password Encryption\
@@ -21,8 +21,8 @@ Forgot Password Email Token\
 Reset Password\
 Usergroups (Members and Admin)\
 Dashboard accessible for Members\
-Adminarea accessible for Admins
-Search and Filter Users in Adminarea
+Adminarea accessible for Admins\
+Search and Filter Users in Adminarea\
 Edit and Remove Users in Adminarea
 
 ## Installation and Launch:
