@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { IAuthenticatedRequest } from '../types/misc';
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const JWT = require('jsonwebtoken');
@@ -13,9 +14,9 @@ const signToken = (user: {
     iss: process.env.JWT_ISS,
     sub: user.email,
     iat: new Date().getTime(), // current time
-    exp: new Date().setDate(new Date().getDate() + 1) // current time + 1 day
+    exp: new Date().setDate(new Date().getDate() + 1), // current time + 1 day
   }, JWT_SECRET);
-}
+};
 
 module.exports = {
   /**
@@ -24,19 +25,19 @@ module.exports = {
    * @param {e.Response} res
    * @returns {Promise<e.Response<any, Record<string, any>>>}
    */
-  register: async (req: Request, res: Response) => {
+  register: async(req: Request, res: Response) => {
     const {
       email,
       password,
-      name
+      name,
     } = req.body;
     // Check if there is a user with the entered email
     const foundUser = await User.findOne({
-      "local.email": email
+      'local.email': email,
     });
     if (foundUser) {
       return res.status(403).json({
-        error: 'Email is already in use'
+        error: 'Email is already in use',
       });
     }
 
@@ -46,13 +47,13 @@ module.exports = {
       method: 'local',
       local: {
         email: email,
-        password: password
+        password: password,
       },
       emailConfirmed: false,
       status: 'eMailConfirmation',
       dates: {
-        registered: new Date()
-      }
+        registered: new Date(),
+      },
     });
 
     // Generate a salt and hash password
@@ -61,13 +62,61 @@ module.exports = {
     //save newUser with hashed password
     newUser.local.password = passwordHash;
     await newUser.save();
-    console.log(newUser)
     // Generate a token and respond with it
     const token = signToken(newUser);
     mailController.sendConfirm(newUser._id);
     res.status(200).json({
-      token
+      token,
     });
+  },
+
+  /**
+   * Resend the confirmation email
+   * @param req
+   * @param res
+   * @param next
+   * @returns {Promise<void>}
+   */
+  resend: async(req: Request, res: Response) => {
+    mailController.sendConfirm(req.body.id);
+    res.sendStatus(200);
+  },
+
+  /**
+   * Confirm the confirmation email
+   * @param req
+   * @param res
+   * @param next
+   * @returns {Promise<void>}
+   */
+  confirm: async(req: Request, res: Response) => {
+    const filter = {
+      _id: req.body.id,
+    };
+    const data = {
+      emailConfirmed: true,
+      status: 'active',
+    };
+    const options = {
+      new: true,
+    }
+    try {
+      let updateUser = await User.findOneAndUpdate(filter, data, options);
+      if (updateUser) {
+        const token = signToken(updateUser);
+        res.status(200).json({
+          token,
+        });
+      } else {
+        res.status(400).json({
+          message: 'user not found',
+        });
+      }
+    } catch (err) {
+      res.status(500).json({
+        message: err,
+      });
+    }
   },
 
   /**
@@ -76,11 +125,11 @@ module.exports = {
    * @param {e.Response} res
    * @returns {Promise<void>}
    */
-  login: async (req: Request, res: Response) => {
+  login: async(req: Request, res: Response) => {
     // Generate a token and respond with it
     const token = signToken(req.body);
     res.status(200).json({
-      token
+      token,
     });
   },
   /**
@@ -89,9 +138,7 @@ module.exports = {
    * @param {e.Response} res
    * @returns {Promise<void>}
    */
-  secret: async (req: Request, res: Response) => {
-    res.json({
-      secret: req.body
-    });
+  getProfile: async(req: IAuthenticatedRequest, res: Response) => {
+    res.json(req.user);
   },
-}
+};

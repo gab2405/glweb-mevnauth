@@ -13,13 +13,18 @@ export const initPassport = () => {
    */
   passport.use(new JwtStrategy({
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: jwtConfig.JWT_SECRET
-  }, async (payload:{sub:Number}, done:Function) => {
+    secretOrKey: jwtConfig.JWT_SECRET,
+  }, async (payload: { sub: string }, done: Function) => {
     try {
       // Find the user by data extracted from token
-      const user = await User.findById(payload.sub);
+      const filter = {
+        email: payload.sub,
+      }
+      const user = await User.findOne(filter);
       // If user doesn't exists, null means no error, false means no user
-      if (!user) return done(null, false);
+      if (!user) {
+        return done(null, false);
+      }
       // null means no error, and pass the user
       done(null, user);
     } catch (error) {
@@ -36,7 +41,7 @@ export const initPassport = () => {
     try {
       // Find the user given the email
       const user = await User.findOne({ 'local.email': email });
-      // If user doesn't exist, null means no error , false means no user
+      // If user doesn't exist, null means no error, false means no user
       if (!user) {
         return done(null, false);
       }
@@ -47,7 +52,7 @@ export const initPassport = () => {
         // null means no error , false means no user
         return done(null, false);
       }
-      // null means no error , user means no user
+      // null means no error , user means user
       done(null, user);
     } catch (error) {
       //error means error , false means no user

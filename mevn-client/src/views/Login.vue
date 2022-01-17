@@ -21,7 +21,9 @@ import { ref } from 'vue';
 import { useStore } from 'vuex';
 import authService from '@/services/auth/authService';
 import { localService } from '@/services/storageHandler';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const store = useStore();
 const email = ref('john@doe.com');
 const password = ref('');
@@ -39,7 +41,8 @@ const submitLogin = async () => {
     // handle successful login
     if (res && 'token' in res) {
       localService.set('jwt', res.token);
-      await store.dispatch('setIsLoggedIn', true);
+      await store.dispatch('setIsauthenticated', true);
+      await router.push({ name: 'Dashboard' });
       return;
     }
 

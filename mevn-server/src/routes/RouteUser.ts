@@ -22,8 +22,18 @@ router.post('/register', validateBody(schemas.registerSchema), userController.re
 router.post('/login', validateBody(schemas.loginSchema), passportLogin, userController.login);
 
 /**
- * Authenticate
+ * Resend confirmation email
  */
-router.get('/secret', passportJWT, userController.secret);
+router.post('/resend', userController.resend);
+
+/**
+ * Confirm confirmation email
+ */
+router.post('/confirm', userController.confirm);
+
+/**
+ * Get logged in users profile
+ */
+router.get('/profile', passportJWT, userController.getProfile);
 
 module.exports = router;

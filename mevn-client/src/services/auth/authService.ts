@@ -2,6 +2,7 @@ import { AxiosError, AxiosResponse } from 'axios';
 import http, { errorHandler, validateResponse, TErrorHandlerResponse } from '../apiClient';
 import path from './auth.paths';
 import { ILoginResponse, IProfileResponse } from './auth.types';
+import { localService } from '../storageHandler';
 
 export default {
 
@@ -32,7 +33,11 @@ export default {
    */
   getProfile: async (): Promise<IProfileResponse | TErrorHandlerResponse> => {
     try {
-      const res = await http.get(path.user.profile);
+      const jwt = localService.get('jwt');
+      const config = {
+        headers: { Authorization: `Bearer ${jwt}` },
+      };
+      const res = await http.get(path.user.profile, config);
       return validateResponse(res);
     } catch (err) {
       return errorHandler(err);
